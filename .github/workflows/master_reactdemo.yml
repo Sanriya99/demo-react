@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy Node.js app to Azure Web App - reactdemo
+name: Build and deploy React app (dist) to Azure Web App - reactdemo
 
 on:
   push:
@@ -19,37 +19,47 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Node.js version
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '24.x'
 
-      - name: npm install, build, and test
+      - name: Install dependencies and build the React app
         run: |
-          npm install
+          npm ci
           npm run build --if-present
           npm run test --if-present
+
+      # Only what the server needs: the built dist folder, the Express server,
+      # and production dependencies. Azure runs "npm start" (node server/index.js).
+      - name: Assemble deployment package
+        run: |
+          mkdir deploy
+          cp -r dist server package.json package-lock.json deploy/
+          cd deploy
+          npm ci --omit=dev
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: .
+          path: deploy
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    
+
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: node-app
-      
+          path: deploy
+
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'reactdemo'
           slot-name: 'Production'
-          package: .
+          package: deploy
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_5303D2C29FAB4D39AF5BD4528BF37F63 }}
