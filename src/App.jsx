@@ -7,14 +7,19 @@ export default function App() {
   return (
     <>
       <header className="navbar">
-        <NavLink to="/" className="brand">
+        
+      <NavLink to="/" className="brand">
           <span className="brand-dot" />
           Sandra
         </NavLink>
+
         <nav className="links">
           <NavLink to="/" end>Home</NavLink>
+          <NavLink to="/about">About</NavLink>
+          <NavLink to="/contact">Contact</NavLink>
         </nav>
-      </header>
+
+        </header>
 
       <main>
         <Routes>
